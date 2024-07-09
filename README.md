@@ -1,7 +1,7 @@
 # numpy bug goose-chase
 
 In this repo I try to bisect a bug in numpy,
-where the same calculation `res = vec * vec` performed again produces different results,
+where the same calculation `vec**2` performed again produces different results,
 and generally things don't make sense!
 
 Reproduced on Python 3.12.4 numpy=1.26.4 on macOS 14.4.1 M1 Pro.

@@ -15,7 +15,7 @@ if __name__ == "__main__":
         if (i - 1) & i == 0:
             print(i, end=" ")
             sys.stdout.flush()
-        res = vec * vec
+        res = vec**2
         if i == 0:
             first_res = res
         if (res != first_res).any():
