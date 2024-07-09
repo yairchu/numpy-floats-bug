@@ -1,5 +1,4 @@
 import numpy as np
-import joblib
 import sys
 
 vec = np.array(
@@ -17,10 +16,9 @@ if __name__ == "__main__":
             print(i, end=" ")
             sys.stdout.flush()
         res = vec * vec
-        hashes.add(joblib.hash(res))
-        if len(hashes) > 1:
+        if i == 0:
+            first_res = res
+        if (res != first_res).any():
             break
-        prev_res = res
     print()
-    print(sorted(hashes))
-    print(res - prev_res)
+    print(res - first_res)
