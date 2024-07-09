@@ -9,16 +9,22 @@ vec = np.array(
     ]
 )
 
+
+def compute():
+    return vec**2
+
+
 if __name__ == "__main__":
-    hashes = set()
-    for i in range(10**5):
+    first_res = compute()
+    for i in range(1, 10**5):
         if (i - 1) & i == 0:
             print(i, end=" ")
             sys.stdout.flush()
-        res = vec**2
-        if i == 0:
-            first_res = res
+        res = compute()
         if (res != first_res).any():
+            print("Results are inconsistent.")
             break
-    print()
-    print(res - first_res)
+    else:
+        print("Results are consistent.")
+    print("Difference:", res - first_res)
+    print("Using", np, "version", np.__version__)
