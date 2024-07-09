@@ -11,7 +11,10 @@ Doesn't repro with numpy==2.0.0!
 To test on your environment:
 
 ```bash
-python floating_point_determinism_test.py
+python -m venv venv
+venv/bin/python -m pip install -r requirements.txt
+
+venv/bin/python floating_point_determinism_test.py
 ```
 
 The common output I get looks like this:
