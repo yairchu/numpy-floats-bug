@@ -20,15 +20,15 @@ venv/bin/python floating_point_determinism_test.py
 The common output I get looks like this:
 
 ```text
-1 Results are inconsistent.
-Difference: [0.0000000e+00+0.j 2.5243549e-29+0.j 0.0000000e+00+0.j]
+INCONSISTENT!
+Difference: [2.5243549e-29+0.j 0.0000000e+00+0.j 0.0000000e+00+0.j]
 Using <module 'numpy' from '...'> version 1.26.4
 ```
 
 However with `numpy==2.0.0` the valid output comes and looks like this:
 
 ```text
-1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 Results are consistent.
-[0.+0.j 0.+0.j 0.+0.j]
-Using <module 'numpy' from '...'> version 1.26.4
+Results are consistent.
+Difference: [0.+0.j 0.+0.j 0.+0.j]
+Using <module 'numpy' from '...'> version 2.0.0
 ```
