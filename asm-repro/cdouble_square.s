@@ -2,19 +2,30 @@
 // NOTE: This is based on the compiled code from numpy, so it inherits numpy's BSD license.
 
 _cdouble_square:
-    ldr x10, [x1]
-    ldp x9, x8, [x0]
-    ldp x11, x12, [x2]
-    mul x13, x11, x10
-    mul x14, x12, x10
-    add x15, x9, x13
+    ldr x10, [x1]           // size = 3
+    ldp x9, x8, [x0]        // x9 = input, x8 = output
+    ldp x11, x12, [x2]      // strides = 16
+    mul x13, x11, x10       // x13 = input_end_off = size*input_stride = 48
+    mul x14, x12, x10       // x14 = output_end_off = 48
+    add x15, x9, x13        // x15 = input.end()
+
+    // x13, x15 = input_end_off < 0 ? (input.end(), input) : (input, input.end())
+    // in_start, in_stop
     cmp x13, #0
     csel x13, x15, x9, lt
     csel x15, x9, x15, lt
-    add x16, x8, x14
+
+    add x16, x8, x14 // x16 = output.end()
+
+    // x14, x16 = output_end_off < 0 ? (output.end(), output) : (output, output.end())
+    // out_start, out_stop
     cmp x14, #0
     csel x14, x16, x8, lt
     csel x16, x8, x16, lt
+
+    // Some complicated condition on pointers of input and output.
+    // Need an ARM wizard to decode it.
+    // Seems like it verifies whether it is ok to use the SIMD code path.
     cmp x16, x15
     ccmp x13, x14, #0, eq
     ccmp x13, x16, #2, ne
@@ -23,29 +34,37 @@ _cdouble_square:
     and x14, x11, #0x7
     ccmp x13, #0, #0, hi
     ccmp x14, #0, #0, eq
-    b.eq _cdouble_square_a0
-_cdouble_square_58:
+    b.eq _cdouble_square_simd
+
+    // The "bad" path.
+    // Never reached if adding a gap ".fill 2, 8" before output_vec0
+    // Simple loop.
+
+    // if (size < 1) return;
     cmp x10, #1
-    b.lt _cdouble_square_9c
+    b.lt _cdouble_square_ret
+
     add x10, x10, #1
     add x9, x9, #8
     add x8, x8, #8
-_cdouble_square_6c:
-    ldp d0, d1, [x9, #-8]
-    fmul d2, d0, d0
-    fmul d3, d1, d1
-    fsub d2, d2, d3
-    fmul d0, d0, d1
-    fadd d0, d0, d0
+_cdouble_square_simple_loop:
+    ldp d0, d1, [x9, #-8]   // d0, d1 = in_r, in_i
+    fmul d2, d0, d0         // d2 = in_r*in_r
+    fmul d3, d1, d1         // d3 = in_i*in_i
+    fsub d2, d2, d3         // out_r = in_r*in_r - in_i*in_i
+    fmul d0, d0, d1         // d0 = in_r*in_i
+    fadd d0, d0, d0         // out_i = in_r*in_i + in_r*in_i
     stp d2, d0, [x8, #-8]
     sub x10, x10, #1
     add x9, x9, x11
     add x8, x8, x12
     cmp x10, #1
-    b.gt _cdouble_square_6c
-_cdouble_square_9c:
+    b.gt _cdouble_square_simple_loop
+_cdouble_square_ret:
     ret
-_cdouble_square_a0:
+
+_cdouble_square_simd:
+    // The "good", SIMD path.
     lsr x13, x11, #3
     lsr x14, x12, #3
     cmp x13, #2
@@ -53,29 +72,40 @@ _cdouble_square_a0:
     cmp x14, #2
     b.ne _cdouble_square_104
     cmp x10, #1
-    b.le _cdouble_square_1c8
+    b.le _cdouble_square_simd_remainder
     ldr q0, xor_to_negate_second
-_cdouble_square_c8:
+_cdouble_square_simd_loop:
     mov x11, x10
+
+    // Load two complex doubles into q1 (aka v1) and q2 (aka v2)
     ldp q1, q2, [x9], #32
+
+    // Computation for first complex
     ext.16b v3, v1, v1, #8
     fmul.2d v3, v3, v1[1]
     eor.16b v3, v3, v0
+    // Note the multiply-add.
+    // This is probably the difference between the SIMD version and non-SIMD version,
+    // Which does it broken down in multiply and sub.
     fmla.2d v3, v1, v1[0]
+
+    // Repeat the computation for second complex
     ext.16b v1, v2, v2, #8
     fmul.2d v1, v1, v2[1]
     eor.16b v1, v1, v0
     fmla.2d v1, v2, v2[0]
+
     stp q3, q1, [x8], #32
     sub x10, x10, #2
     cmp x11, #3
-    b.gt _cdouble_square_c8
-    b _cdouble_square_1c8
+    b.gt _cdouble_square_simd_loop
+    b _cdouble_square_simd_remainder
 _cdouble_square_104:
     brk #0 // This path isn't taken in our example
-_cdouble_square_1c8:
+_cdouble_square_simd_remainder:
+    // Remainder (< 2 elements)
     cmp x10, #1
-    b.lt _cdouble_square_9c
+    b.lt _cdouble_square_ret
     ldr q0, [x9]
     ext.16b v1, v0, v0, #8
     fmul.2d v1, v1, v0[1]

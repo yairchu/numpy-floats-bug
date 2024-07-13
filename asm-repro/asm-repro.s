@@ -24,6 +24,8 @@ input_vec:
         .double 2.5618634555957426e-07
         .fill 4, 8, 0.0
 
+// Adding a gap ".fill 2, 8" here makes computations consistent
+
 .align 4
 output_vec0:
         .fill 6, 8, 0.0
