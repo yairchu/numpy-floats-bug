@@ -99,9 +99,10 @@ xor_to_negate_second:
         .quad 0x8000000000000000
 
 // _cdouble_square
-//   (defined in numpy/core/src/umath/loops.c.src as @TYPE@_square for CDOUBLE ??)
+//   defined in loops_arithm_fp.dispatch.c.src as @TYPE@_@kind@ with kind=square
+//   or without simd in numpy/core/src/umath/loops.c.src as @TYPE@_square
 // Inputs:
-//   x0: char **args (char *in_pointer = args[0], *out_pointer = args[1])
-//   x1: npy_intp const *dimensions
-//   x2: npy_intp const *steps (npy_intp in_steps = steps[0], out_steps = steps[1])
+//   x0: char **args (char *src = args[0], *dst = args[1])
+//   x1: npy_intp const *dimensions (len = dimensions[0])
+//   x2: npy_intp const *steps (src_steps = steps[0], dst_steps = steps[1])
 .include "cdouble_square.s"
