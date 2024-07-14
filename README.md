@@ -1,12 +1,12 @@
 # numpy bug goose-chase
 
-In this repo I try to bisect a bug in numpy,
-where the same calculation `vec**2` performed again produces different results,
-and generally things don't make sense!
+In this repo I investigated [a bug in numpy](https://github.com/numpy/numpy/issues/26940),
+where the same calculation `np.square(vec)` performed again produces different results,
+and generally things didn't make sense!
 
 Reproduced on Python 3.12.4 numpy=1.26.4 on macOS 14.4.1 M1 Pro.
 
-Doesn't repro with numpy==2.0.0!
+Didn't repro for me with numpy==2.0.0, nor on Linux/Windows!
 
 To test on your environment:
 
